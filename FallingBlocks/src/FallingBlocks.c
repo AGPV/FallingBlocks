@@ -1,10 +1,8 @@
 /*
  ============================================================================
- Name        : SDLFirstSteps.c
+ Name        : FalllingBlocks.c
  Author      : Agpv
- Version     :
- Copyright   : 
- Description : Hello World in C, Ansi-style
+ Version     : 0.1
  ============================================================================
  */
 
@@ -16,6 +14,7 @@ const int SCREEN_WIDTH = 640;
 const int SCREEN_HEIGHT = 480;
 const int BLOCK_HEIGHT = 64;
 int BLOCK_WIDTH = 160;
+int def = 0;
 SDL_Window* window = NULL;
 SDL_Surface* screenSurface = NULL;
 
@@ -31,56 +30,32 @@ typedef struct queue_t{
 
 TQueue tower = {NULL, NULL};
 
-TQueue* push(TQueue* queue, SDL_Rect block){
-    // Создание нового узла
-    TNode* node = malloc(sizeof(TNode));
-    // Присваиваем значение новому узлу
-    node->block = block;
-    // Т.к. элемент добавляется в хвост, то указатель
-    // на следующий элемент ни на что не ссылается
-    node->next = NULL;
 
-    // Если очередь не пуста, то ...
-    if (queue->head && queue->tail){
-        // Хвостовой элемент теперь ссылается на
-        // созданный узел
+TQueue* push(TQueue* queue, SDL_Rect block){
+    TNode* node = malloc(sizeof(TNode));    //create new node
+    node->block = block;                    //assign a values
+    node->next = NULL;
+    if (queue->head && queue->tail){        //if queue doesn't empty
         queue->tail->next = node;
-        // Созданный узел становится хвостом
-        queue->tail = node;
+        queue->tail = node;                 //created node becomes tail
     }
-    else{
-        // О-о-о... Первый элемент, теперь он и
-        // вершина и хвост
+    else{                                   //first node
         queue->head = queue->tail = node;
     }
     return queue;
 }
 
-// Извлечение элемента из очереди
+
 SDL_Rect* pop(TQueue* queue){
     SDL_Rect block = {0, 0, 0, 0};
     TNode* node;
-
-    // Пока есть элементы в очереди
     if (queue->head){
-        // Сохраняем указатель на удаляемый элемент
         node = queue->head;
-        // Сохраняем значение удаляемого элемента
         block = node->block;
-        // Вершиной очереди становится следующий за удаляемым элемент
         queue->head = queue->head->next;
-        // Окончательно удаляем элемент
         free(node);
     }
-    return &block;
-}
-void clear(TQueue* queue){
-    // Пока есть хотя бы один элемент
-    while (queue->head){
-        // Извлекаем очередной элемент
-        pop(queue);
-    }
-    queue->head = queue->tail = NULL;
+    return &block;              //idk how to improve
 }
 
 void draw(){
@@ -136,6 +111,11 @@ int main(int argc, char *argv[]) {
                                         draw();
                                         SDL_Delay(5);
                                         SDL_UpdateWindowSurface(window);
+                                        if (score%2 == 0){
+                                            motionFlag = 'l';
+                                        } else {
+                                            motionFlag = 'r';
+                                        }
                                     }
                                     if(tower.tail->block.x+BLOCK_WIDTH < tower.head->next->block.x ||
                                             tower.tail->block.x > tower.head->next->block.x + BLOCK_WIDTH){//miss
@@ -146,15 +126,19 @@ int main(int argc, char *argv[]) {
                                         motionFlag = 's';
                                     } else {
                                         //shortening blocks
-                                        /*if (tower.head->next->block.x > tower.tail->block.x){
-                                            BLOCK_WIDTH -= tower.head->next->block.x - tower.tail->block.x;
+                                        if (tower.head->next->block.x > tower.tail->block.x){
+                                            def = tower.head->next->block.x - tower.tail->block.x;
+                                            tower.tail->block.x += def;
                                         } else {
-                                            BLOCK_WIDTH -= tower.tail->block.x - (tower.head->next->block.x + BLOCK_WIDTH);
-                                        }*/
+                                            def = tower.tail->block.x - tower.head->next->block.x;
+                                        }
+                                        BLOCK_WIDTH -= def;
+                                        newElem->w = BLOCK_WIDTH;
                                         score++;
                                     }
                                     push(&tower, *newElem);
                                     pop(&tower);
+                                    tower.head->next->block.w = BLOCK_WIDTH;
                                     tower.head->block.y += BLOCK_HEIGHT;
                                     tower.head->next->block.y += BLOCK_HEIGHT;
                                 } else {
