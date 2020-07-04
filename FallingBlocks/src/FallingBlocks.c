@@ -6,9 +6,17 @@
  Description : SDL analog of mobile classic game "Tower Bloxx".
                space — drop the block
                on keypad — color change:
+               ---------------
                4, 1 | red +/-
                5, 2 | green +/-
                6, 3 | blue +/-
+               ---------------
+
+
+               color is saved in the settings file
+               ----------------
+               128 0 128       |settings.txt example
+               ----------------
  ============================================================================
  */
 
@@ -39,8 +47,10 @@ void restart();
 int main(int argc, char *argv[]) {
     FILE *settings;
     settings = fopen("settings.txt", "r");
-    fscanf(settings, "%i", r);
-
+    fscanf(settings, "%i ", &r);
+    fscanf(settings, "%i ", &g);
+    fscanf(settings, "%i", &b);
+    fclose(settings);
     if (SDL_Init(SDL_INIT_VIDEO) < 0){
         printf("SDL couldn't init! SDL ERROR: %s\n", SDL_GetError());
     } else {
@@ -125,30 +135,25 @@ int main(int argc, char *argv[]) {
                                     }
                                 break;
                              case SDLK_ESCAPE:
+                                //exit and saving colors
                                 quit = 1;
                                 break;
                              case SDLK_KP_1:
-                                 if (r > 0)
                                      r-= 10;
                                  break;
                              case SDLK_KP_4:
-                                 if (r < 0xFF)
                                      r+= 10;
                                  break;
                              case SDLK_KP_2:
-                                 if (g > 0)
                                      g-= 10;
                                  break;
                              case SDLK_KP_5:
-                                 if (g < 0xFF)
                                      g+= 10;
                                  break;
                              case SDLK_KP_3:
-                                 if (b > 0)
                                      b-= 10;
                                  break;
                              case SDLK_KP_6:
-                                 if (b < 0xFF)
                                      b+= 10;
                                  break;
                                     }
@@ -176,6 +181,13 @@ int main(int argc, char *argv[]) {
             }
         }
     }
+    //saving color in the settings file
+    settings = fopen("settings.txt", "w");
+    fprintf(settings, "%i ", r);
+    fprintf(settings, "%i ", g);
+    fprintf(settings, "%i", b);
+    fclose(settings);
+
     SDL_DestroyWindow( window );
     SDL_Quit();
 	return EXIT_SUCCESS;
