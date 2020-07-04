@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <SDL.h>
+#include "queue.h"
 
 const int SCREEN_WIDTH = 640;
 const int SCREEN_HEIGHT = 480;
@@ -19,67 +20,9 @@ int def = 0;
 SDL_Window* window = NULL;
 SDL_Surface* screenSurface = NULL;
 
-typedef struct node_t{
-    SDL_Rect block;
-    struct node_t* next;
-}   TNode;
 
-typedef struct queue_t{
-    TNode* head;
-    TNode* tail;
-}   TQueue;
-
-TQueue tower = {NULL, NULL};
-
-
-TQueue* push(TQueue* queue, SDL_Rect block){
-    TNode* node = malloc(sizeof(TNode));    //create new node
-    node->block = block;                    //assign a values
-    node->next = NULL;
-    if (queue->head && queue->tail){        //if queue doesn't empty
-        queue->tail->next = node;
-        queue->tail = node;                 //created node becomes tail
-    }
-    else{                                   //first node
-        queue->head = queue->tail = node;
-    }
-    return queue;
-}
-
-
-SDL_Rect* pop(TQueue* queue){
-    SDL_Rect block = {0, 0, 0, 0};          //x,y,w,h
-    TNode* node;
-    if (queue->head){
-        node = queue->head;
-        block = node->block;
-        queue->head = queue->head->next;
-        free(node);
-    }
-    return &block;              //idk how to improve
-}
-
-void draw(){
-    SDL_FillRect(screenSurface, NULL,
-            SDL_MapRGB(screenSurface->format, 0xFF, 0xFF, 0xFF));
-    SDL_FillRect(screenSurface, &tower.tail->block,
-        SDL_MapRGB(screenSurface->format, 0, 0, 0));
-    SDL_FillRect(screenSurface, &tower.head->block,
-        SDL_MapRGB(screenSurface->format, 0, 0, 0));
-    SDL_FillRect(screenSurface, &tower.head->next->block,
-        SDL_MapRGB(screenSurface->format, 0, 0xFF, 0));
-}
-
-void restart(){
-    BLOCK_WIDTH = BLOCK_WIDTH_CONST;
-    tower.tail->block.w = tower.head->block.w = tower.head->next->block.w = BLOCK_WIDTH;
-    tower.tail->block.x = SCREEN_WIDTH/2 - BLOCK_WIDTH/2;
-    tower.tail->block.y = 0;
-    tower.head->next->block.x = SCREEN_WIDTH/2 - BLOCK_WIDTH/2;
-    tower.head->next->block.y = SCREEN_HEIGHT - BLOCK_HEIGHT * 2;
-    tower.head->block.x = SCREEN_WIDTH/2 - BLOCK_WIDTH/2;
-    tower.head->block.y = SCREEN_HEIGHT - BLOCK_HEIGHT;
-}
+void draw();
+void restart();
 
 
 int main(int argc, char *argv[]) {
@@ -139,8 +82,6 @@ int main(int argc, char *argv[]) {
                                         SDL_FillRect(screenSurface, NULL,
                                                 SDL_MapRGB(screenSurface->format, 0xFF, 0xFF, 0xFF));
                                         SDL_UpdateWindowSurface(window);
-                                        restart();
-                                        draw();
                                         motionFlag = 's';
                                     } else {
                                         //shortening blocks
@@ -162,6 +103,7 @@ int main(int argc, char *argv[]) {
                                         tower.head->block.y += BLOCK_HEIGHT;
                                         tower.head->next->block.y += BLOCK_HEIGHT;
                                     } else {
+                                        //restart
                                         restart();
                                         draw();
                                         motionFlag = 'r';
@@ -198,4 +140,29 @@ int main(int argc, char *argv[]) {
     SDL_DestroyWindow( window );
     SDL_Quit();
 	return EXIT_SUCCESS;
+}
+
+//draws 3 blocks
+void draw(){
+    SDL_FillRect(screenSurface, NULL,
+            SDL_MapRGB(screenSurface->format, 0xFF, 0xFF, 0xFF));
+    SDL_FillRect(screenSurface, &tower.tail->block,
+        SDL_MapRGB(screenSurface->format, 0, 0, 0));
+    SDL_FillRect(screenSurface, &tower.head->block,
+        SDL_MapRGB(screenSurface->format, 0, 0, 0));
+    SDL_FillRect(screenSurface, &tower.head->next->block,
+        SDL_MapRGB(screenSurface->format, 0, 0, 0));
+}
+
+
+//changes the blocks size to the starting size
+void restart(){
+    BLOCK_WIDTH = BLOCK_WIDTH_CONST;
+    tower.tail->block.w = tower.head->block.w = tower.head->next->block.w = BLOCK_WIDTH;
+    tower.tail->block.x = SCREEN_WIDTH/2 - BLOCK_WIDTH/2;
+    tower.tail->block.y = 0;
+    tower.head->next->block.x = SCREEN_WIDTH/2 - BLOCK_WIDTH/2;
+    tower.head->next->block.y = SCREEN_HEIGHT - BLOCK_HEIGHT * 2;
+    tower.head->block.x = SCREEN_WIDTH/2 - BLOCK_WIDTH/2;
+    tower.head->block.y = SCREEN_HEIGHT - BLOCK_HEIGHT;
 }
