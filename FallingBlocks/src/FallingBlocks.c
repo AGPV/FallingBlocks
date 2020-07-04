@@ -13,7 +13,8 @@
 const int SCREEN_WIDTH = 640;
 const int SCREEN_HEIGHT = 480;
 const int BLOCK_HEIGHT = 64;
-int BLOCK_WIDTH = 160;
+const int BLOCK_WIDTH_CONST = 160;
+int BLOCK_WIDTH = BLOCK_WIDTH_CONST;
 int def = 0;
 SDL_Window* window = NULL;
 SDL_Surface* screenSurface = NULL;
@@ -66,11 +67,11 @@ void draw(){
     SDL_FillRect(screenSurface, &tower.head->block,
         SDL_MapRGB(screenSurface->format, 0, 0, 0));
     SDL_FillRect(screenSurface, &tower.head->next->block,
-        SDL_MapRGB(screenSurface->format, 0, 0, 0));
+        SDL_MapRGB(screenSurface->format, 0, 0xFF, 0));
 }
 
 void restart(){
-    BLOCK_WIDTH = 160;
+    BLOCK_WIDTH = BLOCK_WIDTH_CONST;
     tower.tail->block.w = tower.head->block.w = tower.head->next->block.w = BLOCK_WIDTH;
     tower.tail->block.x = SCREEN_WIDTH/2 - BLOCK_WIDTH/2;
     tower.tail->block.y = 0;
@@ -97,8 +98,8 @@ int main(int argc, char *argv[]) {
                 return 1;
             }
             newElem->h = BLOCK_HEIGHT;
-            newElem->w = BLOCK_WIDTH;
-            newElem->x = SCREEN_WIDTH/2 - BLOCK_WIDTH/2;
+            newElem->w = BLOCK_WIDTH_CONST;
+            newElem->x = SCREEN_WIDTH/2 - BLOCK_WIDTH_CONST/2;
             newElem->y = SCREEN_HEIGHT - BLOCK_HEIGHT;
             push(&tower, *newElem);
             newElem->y = SCREEN_HEIGHT - BLOCK_HEIGHT * 2;
@@ -116,7 +117,6 @@ int main(int argc, char *argv[]) {
                     } else if (event.type == SDL_KEYDOWN) {
                         switch (event.key.keysym.sym) {
                             case SDLK_SPACE:                    //the fall
-                                if(motionFlag!='s'){
                                     while(tower.tail->block.y+tower.tail->block.h < tower.head->next->block.y){
                                         motionFlag = 'd';
                                         tower.tail->block.y += 10;          //falling speed
@@ -139,7 +139,8 @@ int main(int argc, char *argv[]) {
                                         SDL_FillRect(screenSurface, NULL,
                                                 SDL_MapRGB(screenSurface->format, 0xFF, 0xFF, 0xFF));
                                         SDL_UpdateWindowSurface(window);
-
+                                        restart();
+                                        draw();
                                         motionFlag = 's';
                                     } else {
                                         //shortening blocks
@@ -154,14 +155,17 @@ int main(int argc, char *argv[]) {
                                         score++;
                                     }
                                     //push the queue
-                                    push(&tower, *newElem);
-                                    pop(&tower);
-                                    tower.head->next->block.w = BLOCK_WIDTH;
-                                    tower.head->block.y += BLOCK_HEIGHT;
-                                    tower.head->next->block.y += BLOCK_HEIGHT;
-                                } else {
-                                    //restart?
-                                }
+                                    if (motionFlag != 's'){
+                                        push(&tower, *newElem);
+                                        pop(&tower);
+                                        tower.head->next->block.w = BLOCK_WIDTH;
+                                        tower.head->block.y += BLOCK_HEIGHT;
+                                        tower.head->next->block.y += BLOCK_HEIGHT;
+                                    } else {
+                                        restart();
+                                        draw();
+                                        motionFlag = 'r';
+                                    }
                                 break;
                              case SDLK_ESCAPE:
                                 quit = 1;
