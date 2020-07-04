@@ -17,6 +17,8 @@
                ----------------
                128 0 128       |settings.txt example
                ----------------
+
+               the highest score for the session is saved in a highscores.txt
  ============================================================================
  */
 
@@ -45,12 +47,18 @@ void restart();
 
 
 int main(int argc, char *argv[]) {
+    int quit = 0;
+    char motionFlag = 'r';
+    int score = 0, highScore = 0;
+
+    //load color from file
     FILE *settings;
     settings = fopen("settings.txt", "r");
     fscanf(settings, "%i ", &r);
     fscanf(settings, "%i ", &g);
     fscanf(settings, "%i", &b);
     fclose(settings);
+
     if (SDL_Init(SDL_INIT_VIDEO) < 0){
         printf("SDL couldn't init! SDL ERROR: %s\n", SDL_GetError());
     } else {
@@ -74,9 +82,6 @@ int main(int argc, char *argv[]) {
             push(&tower, *newElem);
             newElem->y = 0;
             push(&tower, *newElem);
-            int quit = 0;
-            char motionFlag = 'r';
-            int score = 0;
             SDL_Event event;
             while(quit == 0){
                 while (SDL_PollEvent(&event) != 0) {
@@ -107,6 +112,10 @@ int main(int argc, char *argv[]) {
                                         SDL_FillRect(screenSurface, NULL,
                                                 SDL_MapRGB(screenSurface->format, 0xFF, 0xFF, 0xFF));
                                         SDL_UpdateWindowSurface(window);
+                                        if (score > highScore){
+                                            highScore = score;
+                                        }
+                                        score = 0;
                                         motionFlag = 's';
                                     } else {
                                         //shortening blocks
@@ -187,6 +196,12 @@ int main(int argc, char *argv[]) {
     fprintf(settings, "%i ", g);
     fprintf(settings, "%i", b);
     fclose(settings);
+
+    //saving a highscore in a file
+    FILE *highScores;
+    highScores = fopen("highscores.txt", "a+");
+    fprintf(highScores, "%i \n", highScore);
+    fclose(highScores);
 
     SDL_DestroyWindow( window );
     SDL_Quit();
