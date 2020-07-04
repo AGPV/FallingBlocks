@@ -47,7 +47,7 @@ TQueue* push(TQueue* queue, SDL_Rect block){
 
 
 SDL_Rect* pop(TQueue* queue){
-    SDL_Rect block = {0, 0, 0, 0};
+    SDL_Rect block = {0, 0, 0, 0};          //x,y,w,h
     TNode* node;
     if (queue->head){
         node = queue->head;
@@ -68,6 +68,18 @@ void draw(){
     SDL_FillRect(screenSurface, &tower.head->next->block,
         SDL_MapRGB(screenSurface->format, 0, 0, 0));
 }
+
+void restart(){
+    BLOCK_WIDTH = 160;
+    tower.tail->block.w = tower.head->block.w = tower.head->next->block.w = BLOCK_WIDTH;
+    tower.tail->block.x = SCREEN_WIDTH/2 - BLOCK_WIDTH/2;
+    tower.tail->block.y = 0;
+    tower.head->next->block.x = SCREEN_WIDTH/2 - BLOCK_WIDTH/2;
+    tower.head->next->block.y = SCREEN_HEIGHT - BLOCK_HEIGHT * 2;
+    tower.head->block.x = SCREEN_WIDTH/2 - BLOCK_WIDTH/2;
+    tower.head->block.y = SCREEN_HEIGHT - BLOCK_HEIGHT;
+}
+
 
 int main(int argc, char *argv[]) {
     if (SDL_Init(SDL_INIT_VIDEO) < 0){
@@ -103,26 +115,31 @@ int main(int argc, char *argv[]) {
                         quit = 1;
                     } else if (event.type == SDL_KEYDOWN) {
                         switch (event.key.keysym.sym) {
-                            case SDLK_SPACE:
+                            case SDLK_SPACE:                    //the fall
                                 if(motionFlag!='s'){
                                     while(tower.tail->block.y+tower.tail->block.h < tower.head->next->block.y){
                                         motionFlag = 'd';
-                                        tower.tail->block.y += 10;
+                                        tower.tail->block.y += 10;          //falling speed
                                         draw();
                                         SDL_Delay(5);
                                         SDL_UpdateWindowSurface(window);
-                                        if (score%2 == 0){
+                                        if (score%2 == 0){                  //alternating direction
                                             motionFlag = 'l';
                                         } else {
                                             motionFlag = 'r';
                                         }
                                     }
                                     if(tower.tail->block.x+BLOCK_WIDTH < tower.head->next->block.x ||
-                                            tower.tail->block.x > tower.head->next->block.x + BLOCK_WIDTH){//miss
+                                            tower.tail->block.x > tower.head->next->block.x + BLOCK_WIDTH){
+                                        //miss
                                         SDL_FillRect(screenSurface, NULL,
                                                 SDL_MapRGB(screenSurface->format, 0xFF, 0, 0));
                                         SDL_UpdateWindowSurface(window);
-                                        SDL_Delay(200);
+                                        SDL_Delay(1000);
+                                        SDL_FillRect(screenSurface, NULL,
+                                                SDL_MapRGB(screenSurface->format, 0xFF, 0xFF, 0xFF));
+                                        SDL_UpdateWindowSurface(window);
+
                                         motionFlag = 's';
                                     } else {
                                         //shortening blocks
@@ -136,13 +153,14 @@ int main(int argc, char *argv[]) {
                                         newElem->w = BLOCK_WIDTH;
                                         score++;
                                     }
+                                    //push the queue
                                     push(&tower, *newElem);
                                     pop(&tower);
                                     tower.head->next->block.w = BLOCK_WIDTH;
                                     tower.head->block.y += BLOCK_HEIGHT;
                                     tower.head->next->block.y += BLOCK_HEIGHT;
                                 } else {
-                                    //restart
+                                    //restart?
                                 }
                                 break;
                              case SDLK_ESCAPE:
@@ -152,11 +170,13 @@ int main(int argc, char *argv[]) {
                                 }
                  }
                     if(tower.tail->block.x + tower.tail->block.w <SCREEN_WIDTH && motionFlag =='r'){
+                    //move right
                     draw();
                     tower.tail->block.x ++;
                     SDL_Delay(1);
                     SDL_UpdateWindowSurface(window);
                     } else if(motionFlag != 's'){
+                        //move left
                         motionFlag = 'l';
                         if (tower.tail->block.x>=0 && motionFlag == 'l'){
                             draw();
