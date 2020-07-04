@@ -3,6 +3,12 @@
  Name        : FalllingBlocks.c
  Author      : Agpv
  Version     : 0.1
+ Description : SDL analog of mobile classic game "Tower Bloxx".
+               space — drop the block
+               on keypad — color change:
+               4, 1 | red +/-
+               5, 2 | green +/-
+               6, 3 | blue +/-
  ============================================================================
  */
 
@@ -17,6 +23,11 @@ const int BLOCK_HEIGHT = 64;
 const int BLOCK_WIDTH_CONST = 160;
 int BLOCK_WIDTH = BLOCK_WIDTH_CONST;
 int def = 0;
+
+Uint8 r = 0;
+Uint8 g = 0;
+Uint8 b = 0;
+
 SDL_Window* window = NULL;
 SDL_Surface* screenSurface = NULL;
 
@@ -26,6 +37,10 @@ void restart();
 
 
 int main(int argc, char *argv[]) {
+    FILE *settings;
+    settings = fopen("settings.txt", "r");
+    fscanf(settings, "%i", r);
+
     if (SDL_Init(SDL_INIT_VIDEO) < 0){
         printf("SDL couldn't init! SDL ERROR: %s\n", SDL_GetError());
     } else {
@@ -112,13 +127,37 @@ int main(int argc, char *argv[]) {
                              case SDLK_ESCAPE:
                                 quit = 1;
                                 break;
+                             case SDLK_KP_1:
+                                 if (r > 0)
+                                     r-= 10;
+                                 break;
+                             case SDLK_KP_4:
+                                 if (r < 0xFF)
+                                     r+= 10;
+                                 break;
+                             case SDLK_KP_2:
+                                 if (g > 0)
+                                     g-= 10;
+                                 break;
+                             case SDLK_KP_5:
+                                 if (g < 0xFF)
+                                     g+= 10;
+                                 break;
+                             case SDLK_KP_3:
+                                 if (b > 0)
+                                     b-= 10;
+                                 break;
+                             case SDLK_KP_6:
+                                 if (b < 0xFF)
+                                     b+= 10;
+                                 break;
                                     }
                                 }
                  }
-                    if(tower.tail->block.x + tower.tail->block.w <SCREEN_WIDTH && motionFlag =='r'){
+                    if(tower.tail->block.x + tower.tail->block.w <= SCREEN_WIDTH && motionFlag =='r'){
                     //move right
                     draw();
-                    tower.tail->block.x ++;
+                    tower.tail->block.x++;
                     SDL_Delay(1);
                     SDL_UpdateWindowSurface(window);
                     } else if(motionFlag != 's'){
@@ -126,7 +165,7 @@ int main(int argc, char *argv[]) {
                         motionFlag = 'l';
                         if (tower.tail->block.x>=0 && motionFlag == 'l'){
                             draw();
-                            tower.tail->block.x --;
+                            tower.tail->block.x--;
                             SDL_Delay(1);
                             SDL_UpdateWindowSurface(window);
                             if (tower.tail->block.x == 0) {
@@ -147,11 +186,11 @@ void draw(){
     SDL_FillRect(screenSurface, NULL,
             SDL_MapRGB(screenSurface->format, 0xFF, 0xFF, 0xFF));
     SDL_FillRect(screenSurface, &tower.tail->block,
-        SDL_MapRGB(screenSurface->format, 0, 0, 0));
+        SDL_MapRGB(screenSurface->format, r, g, b));
     SDL_FillRect(screenSurface, &tower.head->block,
-        SDL_MapRGB(screenSurface->format, 0, 0, 0));
+        SDL_MapRGB(screenSurface->format, r, g, b));
     SDL_FillRect(screenSurface, &tower.head->next->block,
-        SDL_MapRGB(screenSurface->format, 0, 0, 0));
+        SDL_MapRGB(screenSurface->format, r, g, b));
 }
 
 
